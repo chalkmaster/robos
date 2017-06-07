@@ -1,0 +1,27 @@
+{
+  "name": "robos",
+  "version": "1.0.0",
+  "description": "Full-stack Challange",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chalkmaster/robos.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chalkmaster/robos/issues"
+  },
+  "homepage": "https://github.com/chalkmaster/robos#readme",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "guid": "0.0.12",
+    "mustache": "^2.3.0",
+    "querystring": "^0.2.0",
+    "request": "^2.81.0"
+  }
+}
