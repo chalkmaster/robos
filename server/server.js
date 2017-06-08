@@ -10,12 +10,18 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-var csrf_guid = Guid.raw();
-const account_kit_api_version = 'v1.0';
-const app_id = '1848667365349936';
-const app_secret = '7226ac6000f66cc9284e29e426ba3dcf';
-const me_endpoint_base_url = `https://graph.accountkit.com/${account_kit_api_version}/me`;
-const token_exchange_base_url = `https://graph.accountkit.com/${account_kit_api_version}/access_token`; 
+var csrfGuid = Guid.raw();
+const accountKitApiVersion = 'v1.0';
+const appId = '1848667365349936';
+const appSecret = '7226ac6000f66cc9284e29e426ba3dcf';
+const meEndpointBaseUrl = `https://graph.accountkit.com/${accountKitApiVersion}/me`;
+const tokenExchangeBaseUrl = `https://graph.accountkit.com/${accountKitApiVersion}/access_token`; 
+
+const vickyToken = '371961453:AAHaUcG504xX5ObL0mivPvG27uHVIkYKJO8';
+const updateMethod = 'getUpdates';
+let lastMessageId = 0;
+const telegramBotGetUpdateUrl = `https://api.telegram.org/bot${vickyToken}/${updateMethod}?offset=${lastMessageId}`;
+const telegramBotSendMessageUrl = `https://api.telegram.org/bot${vickyToken}/${updateMethod}?offset=${lastMessageId}`;
 
 const port = 8888;
 
@@ -25,9 +31,9 @@ function loadLogin() {
 
 app.get('/', function(request, response){
   let view = {
-    appId: app_id,
-    csrf: csrf_guid,
-    version: account_kit_api_version,
+    appId: appId,
+    csrf: csrfGuid,
+    version: accountKitApiVersion,
   };
 
   let html = Mustache.to_html(loadLogin(), view);
@@ -41,8 +47,8 @@ function loadLoginSuccess() {
 app.post('/login_success', function(request, response){
 
   // CSRF check
-  if (request.body.csrf === csrf_guid) {
-    let app_access_token = ['AA', app_id, app_secret].join('|');
+  if (request.body.csrf === csrfGuid) {
+    let app_access_token = ['AA', appId, appSecret].join('|');
     let params = {
       grant_type: 'authorization_code',
       code: request.body.code,
@@ -50,7 +56,7 @@ app.post('/login_success', function(request, response){
     };
   
     // exchange tokens
-    let token_exchange_url = token_exchange_base_url + '?' + Querystring.stringify(params);
+    let token_exchange_url = tokenExchangeBaseUrl + '?' + Querystring.stringify(params);
     Request.get({url: token_exchange_url, json: true}, function(err, resp, respBody) {
       let view = {
         user_access_token: respBody.access_token,
@@ -59,7 +65,7 @@ app.post('/login_success', function(request, response){
       };
 
       // get account details at /me endpoint
-      let me_endpoint_url = me_endpoint_base_url + '?access_token=' + respBody.access_token;
+      let me_endpoint_url = meEndpointBaseUrl + '?access_token=' + respBody.access_token;
       Request.get({url: me_endpoint_url, json:true }, function(err, resp, respBody) {
         // send login_success.html
         if (respBody.phone) {
