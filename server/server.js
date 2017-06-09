@@ -4,8 +4,9 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const Mustache  = require('mustache');
 const Request  = require('request');
-const chatService = require('../core/chatService').chatService;
-const telegramService = require('../core/telegramIntegrationService').telegramService;
+
+const chatService = require('../core/services/chatService').chatService;
+const telegramService = require('../core/services/telegramIntegrationService').telegramService;
 // const Querystring  = require('querystring');
 // const socketIO = require('socket.io');
 // const http = require('http');

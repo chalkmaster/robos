@@ -1,5 +1,5 @@
 const expect = require('chai').expect;
-const service = require('../core/chatService').chatService;
+const service = require('../core/services/chatService').chatService;
 const telegramServiceMock = require('./mock/telegramIntegrationServiceMock').telegramIntegrationServiceMock;
 
 const getValidChatService = () => { return new service(telegramServiceMock); }

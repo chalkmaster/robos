@@ -1,5 +1,5 @@
 const events = require('events');
-const chat = require('./chat').chat;
+const chat = require('../domainModel/chat').chat;
 
 const updateInterval = 1000;
 

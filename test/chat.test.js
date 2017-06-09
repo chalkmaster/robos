@@ -1,5 +1,5 @@
 const expect = require('chai').expect;
-const chat = require('../core/chat').chat;
+const chat = require('../core/domainModel/chat').chat;
 
 const getValidChat = () => { return new chat(1, 'chatTest'); }
 
