@@ -4,7 +4,7 @@
   "description": "Full-stack Challange",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/mocha --reporter spec"
   },
   "repository": {
     "type": "git",
@@ -18,8 +18,10 @@
   "homepage": "https://github.com/chalkmaster/robos#readme",
   "dependencies": {
     "body-parser": "^1.17.2",
+    "chai": "^4.0.2",
     "express": "^4.15.3",
     "guid": "0.0.12",
+    "mocha": "^3.4.2",
     "mustache": "^2.3.0",
     "querystring": "^0.2.0",
     "request": "^2.81.0"
