@@ -2,7 +2,7 @@
   "name": "robos",
   "version": "1.0.0",
   "description": "Full-stack Challange",
-  "main": "index.js",
+  "main": "server/server.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --reporter spec"
   },

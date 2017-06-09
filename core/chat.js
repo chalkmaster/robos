@@ -10,6 +10,9 @@ module.exports.chat = class chat {
     this.messages = [];
   }
 
+  /**
+   * return current chat id
+   */
   getChatId() {
     return this.chatId;
   }
@@ -36,6 +39,28 @@ module.exports.chat = class chat {
         };
         this.messages.push(receivedMsg);
         emitter.emit(onMessageReceivedEventKey, receivedMsg);
+        resolve(this.messages);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * add messages sent by vicky
+   */
+  addSentMessage(msg) {
+    return new Promise((resolve, reject) => {
+      try {
+        const name = `${msg.result.from.first_name}`;
+        const sentMessage = {
+          userName: name,
+          messageType: 'sent',
+          receivedAt: new Date(msg.result.date),
+          messageText: msg.result.text,
+        };
+        this.messages.push(sentMessage);
+        emitter.emit(onMessageReceivedEventKey, sentMessage);
         resolve(this.messages);
       } catch (err) {
         reject(err);

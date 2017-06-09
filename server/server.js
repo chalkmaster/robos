@@ -4,13 +4,13 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const Mustache  = require('mustache');
 const Request  = require('request');
-const Querystring  = require('querystring');
-const socketIO = require('socket.io');
-const http = require('http');
+// const Querystring  = require('querystring');
+// const socketIO = require('socket.io');
+// const http = require('http');
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIO(server);
+// const server = http.createServer(app);
+// const io = socketIO(server);
 
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -24,76 +24,72 @@ const meEndpointBaseUrl = `https://graph.accountkit.com/${accountKitApiVersion}/
 const tokenExchangeBaseUrl = `https://graph.accountkit.com/${accountKitApiVersion}/access_token`; 
 
 const port = 8888;
-const users = new Users();
+// const users = new Users();
 
 
-io.on('connection', (socket) => {
+// io.on('connection', (socket) => {
 
-  console.log(users.getRooms());
+//   console.log(users.getRooms());
 
-  socket.emit('roomList', {
-    rooms: users.getRooms()
-  });
+//   socket.emit('roomList', {
+//     rooms: users.getRooms()
+//   });
 
-  socket.on('join', (params, callback) => {
-    if (!isRealString(params.name) || !isRealString(params.room)) {
-      callback('Name and room name are required.');
-    }
+//   socket.on('join', (params, callback) => {
+//     if (!isRealString(params.name) || !isRealString(params.room)) {
+//       callback('Name and room name are required.');
+//     }
 
-    const room = params.room.toLowerCase();
+//     const room = params.room.toLowerCase();
 
-    users.getUserList(room).forEach((name) => {
-      if(name === params.name) {
-        callback('Name in use, try another name.');
-      }
-    })
+//     users.getUserList(room).forEach((name) => {
+//       if(name === params.name) {
+//         callback('Name in use, try another name.');
+//       }
+//     })
 
-    socket.join(room);
+//     socket.join(room);
 
-    users.addUser(socket.id, params.name, room);
-    io.to(room).emit('updateUserList', users.getUserList(room));
+//     users.addUser(socket.id, params.name, room);
+//     io.to(room).emit('updateUserList', users.getUserList(room));
 
-    socket.emit('newMessage', generateMessage('Admin', `Welcome to the ${room}!`));
-    socket.broadcast.to(room).emit('newMessage', generateMessage('Admin', `${params.name} has joined the chat`));
+//     socket.emit('newMessage', generateMessage('Admin', `Welcome to the ${room}!`));
+//     socket.broadcast.to(room).emit('newMessage', generateMessage('Admin', `${params.name} has joined the chat`));
 
-    callback();
+//     callback();
 
-  });
+//   });
 
-  socket.on('createMessage', (message, callback) => {
+//   socket.on('createMessage', (message, callback) => {
 
-    const user = users.getUser(socket.id);
+//     const user = users.getUser(socket.id);
 
-    if (user && isRealString(message.text)) {
-      io.to(user.room).emit('newMessage', generateMessage(user.name, message.text));
-    }
+//     if (user && isRealString(message.text)) {
+//       io.to(user.room).emit('newMessage', generateMessage(user.name, message.text));
+//     }
 
-    if(callback) {
-      callback('This is from server!');
-    }
+//     if(callback) {
+//       callback('This is from server!');
+//     }
 
-  });
+//   });
 
-  socket.on('createLocationMessage', (location) => {
-    const user = users.getUser(socket.id);
+//   socket.on('createLocationMessage', (location) => {
+//     const user = users.getUser(socket.id);
 
-    io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, location.latitude, location.longitude));
-  })
+//     io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, location.latitude, location.longitude));
+//   })
 
-  socket.on('disconnect', () => {
-    var user = users.removeUser(socket.id);
+//   socket.on('disconnect', () => {
+//     var user = users.removeUser(socket.id);
 
-    if (user) {
-      io.to(user.room).emit('updateUserList', users.getUserList(user.room));
-      io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} left the room.`));
-    }
-  });
+//     if (user) {
+//       io.to(user.room).emit('updateUserList', users.getUserList(user.room));
+//       io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} left the room.`));
+//     }
+//   });
 
-});
-
-server.listen(port, () => {
-  console.log(`App listen to port ${port}`)
-});
+// });
 
 function loadLogin() {
   return fs.readFileSync('../public/index.html').toString();
@@ -108,6 +104,29 @@ app.get('/', function(request, response){
 
   let html = Mustache.to_html(loadLogin(), view);
   response.send(html);
+});
+
+const chatService = require('../core/chatService').chatService;
+const telegramService = require('../core/telegramIntegrationService').telegramService;
+const service = new chatService(telegramService);
+
+app.get('/start', function(request, response){
+  service.start();
+  response.send('OK');
+});
+
+app.post('/sendMessage', function(request, response){
+  
+  let messageText = request.body.message;
+  let chatId = request.body.chatId;
+
+  service.sendMessage(chatId, messageText);
+  response.send("Message sent");
+});
+
+app.get('/getChats', function(request, response){
+  let chats = service.getChatList();
+  response.send(chats);
 });
 
 function loadLoginSuccess() {
@@ -156,6 +175,6 @@ app.post('/login_success', function(request, response){
   }
 });
 
-server.listen(port, () => {
+app.listen(port, () => {
   console.log(`listening to ${port}`);
 });

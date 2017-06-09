@@ -1,9 +1,9 @@
-import request from 'request';
+const request = require('request');
 
 //vicky is the bot's name;
 const vickyToken = '371961453:AAHaUcG504xX5ObL0mivPvG27uHVIkYKJO8';
 
-class telegramIntegrationService {
+module.exports.telegramService = class telegramIntegrationService {
   constructor() {
     this.lastMessageId = 0;
   }
@@ -29,7 +29,7 @@ class telegramIntegrationService {
   static sendMessageToTelegram(chatId, messageText) {
     return new Promise((resolve, reject) => {
       const sendMessageUrl = `https://api.telegram.org/bot${vickyToken}/sendMessage?chat_id=${chatId}&text=${messageText}`;
-      request.post(getUpdateUrl, { json: true }, function (err, res, body) {
+      request.post(sendMessageUrl, { json: true }, function (err, res, body) {
         if (!err && res.statusCode === 200)
           resolve(body);
         else
