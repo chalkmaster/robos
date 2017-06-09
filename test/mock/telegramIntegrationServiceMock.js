@@ -44,7 +44,7 @@ const sentMessageStub = {
   }
 };
 
-module.exports.telegram = class telegram {
+module.exports.telegramIntegrationServiceMock = class telegramIntegrationServiceMock {
   constructor() {
     this.lastMessageId = 0;
   }

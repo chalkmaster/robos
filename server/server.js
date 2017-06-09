@@ -4,11 +4,14 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const Mustache  = require('mustache');
 const Request  = require('request');
+const chatService = require('../core/chatService').chatService;
+const telegramService = require('../core/telegramIntegrationService').telegramService;
 // const Querystring  = require('querystring');
 // const socketIO = require('socket.io');
 // const http = require('http');
 
 const app = express();
+const service = new chatService(telegramService);
 // const server = http.createServer(app);
 // const io = socketIO(server);
 
@@ -106,9 +109,6 @@ app.get('/', function(request, response){
   response.send(html);
 });
 
-const chatService = require('../core/chatService').chatService;
-const telegramService = require('../core/telegramIntegrationService').telegramService;
-const service = new chatService(telegramService);
 
 app.get('/start', function(request, response){
   service.start();
@@ -144,6 +144,8 @@ app.post('/login_success', function(request, response){
       access_token: app_access_token
     };
   
+    service.start();
+
     // exchange tokens
     let token_exchange_url = tokenExchangeBaseUrl + '?' + Querystring.stringify(params);
     Request.get({url: token_exchange_url, json: true}, function(err, resp, respBody) {

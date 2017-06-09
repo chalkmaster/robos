@@ -26,7 +26,7 @@ module.exports.chat = class chat {
   /**
    * update the message list with all new messages
    */
-  addMessage(msg) {
+  addReceivedMessage(msg) {
     return new Promise((resolve, reject) => {
       try {
         this.lastMessageId = msg.update_id;

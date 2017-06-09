@@ -27,14 +27,14 @@ const messageStub = {
 describe("chat struct tests", () => {
   describe("message tests", () => {
     it("can add a new message", () => {
-      getValidChat().addMessage(messageStub).then((messages) => {
+      getValidChat().addReceivedMessage(messageStub).then((messages) => {
         expect(messages.length).to.eq(1);
       });
     });
 
     it("can get all messages", () => {
       const chat = getValidChat();
-      chat.addMessage(messageStub).then(() => {
+      chat.addReceivedMessage(messageStub).then(() => {
         chat.getAllMessages().then((m) => expect(m.length).to.eq(1))
       });
     });
@@ -48,7 +48,7 @@ describe("chat struct tests", () => {
         expect(received).to.eq(messageStub.text);
       });
 
-      chat.addMessage(messageStub);
+      chat.addReceivedMessage(messageStub);
     })
   });
 });

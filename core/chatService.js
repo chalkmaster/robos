@@ -15,7 +15,7 @@ module.exports.chatService = class chatService {
   /**
    * return the chatlist
    */
-  getChatList(){
+  getChatList() {
     return this.chats;
   }
 
@@ -36,20 +36,21 @@ module.exports.chatService = class chatService {
     );
   }
 
-  sendMessage(chatId, messageText){    
-    this.telegramIntegrationService.sendMessageToTelegram(chatId, messageText).then((msg) => {
-      var chatId = msg.result.chat.id;
-      var currentChat;
-      for (let chatRoom of this.chats) {
-        if (chatRoom.getChatId() === chatId)
-        {
-          currentChat = chatRoom;
-          continue;
-        }
-      }
-      currentChat.addSentMessage(msg);      
+  sendMessage(chatId, messageText) {
+    return new Promise((resolve, reject) => {
+      this.telegramIntegrationService.sendMessageToTelegram(chatId, messageText)
+        .then((msg) => {
+          const currentChat = this.getChatById(chatId);
+        
+          if (currentChat)
+            currentChat.addSentMessage(msg);
+        
+          resolve(msg);
+        })
+        .catch((err) => reject(err));
     });
   }
+
   /**
   * refresh the chat list, create new and add messages
   */
@@ -57,23 +58,15 @@ module.exports.chatService = class chatService {
     const result = [...receivedData.result];
 
     for (let msg of result) {
-      var chatId = msg.message.chat.id;
-      var currentChat;
-      this.lastMessageId = ++msg.update_id;
-      for (let chatRoom of this.chats) {
-        if (chatRoom.getChatId() === chatId)
-        {
-          currentChat = chatRoom;
-          continue;
-        }
-      }
-      
-      if (!currentChat)
-      {
+      const chatId = msg.message.chat.id;
+
+      let currentChat = this.getChatById(chatId);
+      if (!currentChat) {
         currentChat = new chat(chatId, `Chat with ${msg.message.from.first_name} ${msg.message.from.last_name}`);
         this.chats.push(currentChat);
       }
-      currentChat.addMessage(msg);
+      currentChat.addReceivedMessage(msg);
+      this.lastMessageId = ++msg.update_id;
     }
   }
 
@@ -83,5 +76,19 @@ module.exports.chatService = class chatService {
   stop() {
     if (this.updateId)
       clearInterval(this.updateId);
+  }
+
+  /**
+   * find an active chat by this id
+   */
+  getChatById(chatId) {
+    var chat;
+    for (let chatRoom of this.chats) {
+      if (chatRoom.getChatId() === chatId) {
+        chat = chatRoom;
+        break;
+      }
+    }
+    return chat;
   }
 }
