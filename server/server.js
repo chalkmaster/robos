@@ -4,22 +4,32 @@ const express = require('express');
 const bodyParser = require("body-parser");
 const Mustache  = require('mustache');
 const Request  = require('request');
-
-const chatService = require('../core/services/chatService').chatService;
-const telegramService = require('../core/services/telegramIntegrationService').telegramService;
-
-// const Querystring  = require('querystring');
-// const socketIO = require('socket.io');
-// const http = require('http');
+const Querystring  = require('querystring');
 
 const app = express();
+const chatService = require('../core/services/chatService').chatService;
+const telegramService = require('../core/services/telegramIntegrationService').telegramService;
 const service = new chatService(telegramService);
-// const server = http.createServer(app);
-// const io = socketIO(server);
+const wsServer = require('ws').Server;
+const server = require('http').createServer();
 
+const ws = new wsServer({
+  server: server
+});
+
+server.on('request', app);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+ws.on('connection', function connection(wsc) {
+  
+  service.chats.forEach((i) => i.setup(ws.send));
+  
+  wsc.on('message', function incoming(msg) {
+    service.sendMessage(msg.chatId, msg.message);
+  });
+});
 
 var csrfGuid = Guid.raw();
 const accountKitApiVersion = 'v1.0';
@@ -29,72 +39,6 @@ const meEndpointBaseUrl = `https://graph.accountkit.com/${accountKitApiVersion}/
 const tokenExchangeBaseUrl = `https://graph.accountkit.com/${accountKitApiVersion}/access_token`; 
 
 const port = 8888;
-// const users = new Users();
-
-
-// io.on('connection', (socket) => {
-
-//   console.log(users.getRooms());
-
-//   socket.emit('roomList', {
-//     rooms: users.getRooms()
-//   });
-
-//   socket.on('join', (params, callback) => {
-//     if (!isRealString(params.name) || !isRealString(params.room)) {
-//       callback('Name and room name are required.');
-//     }
-
-//     const room = params.room.toLowerCase();
-
-//     users.getUserList(room).forEach((name) => {
-//       if(name === params.name) {
-//         callback('Name in use, try another name.');
-//       }
-//     })
-
-//     socket.join(room);
-
-//     users.addUser(socket.id, params.name, room);
-//     io.to(room).emit('updateUserList', users.getUserList(room));
-
-//     socket.emit('newMessage', generateMessage('Admin', `Welcome to the ${room}!`));
-//     socket.broadcast.to(room).emit('newMessage', generateMessage('Admin', `${params.name} has joined the chat`));
-
-//     callback();
-
-//   });
-
-//   socket.on('createMessage', (message, callback) => {
-
-//     const user = users.getUser(socket.id);
-
-//     if (user && isRealString(message.text)) {
-//       io.to(user.room).emit('newMessage', generateMessage(user.name, message.text));
-//     }
-
-//     if(callback) {
-//       callback('This is from server!');
-//     }
-
-//   });
-
-//   socket.on('createLocationMessage', (location) => {
-//     const user = users.getUser(socket.id);
-
-//     io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, location.latitude, location.longitude));
-//   })
-
-//   socket.on('disconnect', () => {
-//     var user = users.removeUser(socket.id);
-
-//     if (user) {
-//       io.to(user.room).emit('updateUserList', users.getUserList(user.room));
-//       io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} left the room.`));
-//     }
-//   });
-
-// });
 
 function loadLogin() {
   return fs.readFileSync(__dirname + '/../public/index.html').toString();
@@ -113,12 +57,19 @@ app.get('/', function(request, response){
 
 
 app.get('/chat', function(request, response){
-  const html = Mustache.to_html(fs.readFileSync(__dirname + '/../public/Chat.html').toString());
+  const html = Mustache.to_html(fs.readFileSync(__dirname + '/../public/chat.html').toString());
   response.send(html);
 });
 
+app.get('/teste', function(request, response){
+  const html = Mustache.to_html(fs.readFileSync(__dirname + '/../public/teste.html').toString());
+  response.send(html);
+});
+
+
 app.get('/start', function(request, response){
   service.start();
+  console.log('started');
   response.send(200);
 });
 
@@ -168,20 +119,7 @@ app.post('/login_success', function(request, response){
         expires_at: respBody.expires_at,
         user_id: respBody.id,	
       };
-
-      // get account details at /me endpoint
-      let me_endpoint_url = meEndpointBaseUrl + '?access_token=' + respBody.access_token;
-      Request.get({url: me_endpoint_url, json:true }, function(err, resp, respBody) {
-        // send login_success.html
-        if (respBody.phone) {
-          view.phone_num = respBody.phone.number;
-        } else if (respBody.email) {
-          view.email_addr = respBody.email.address;
-        }
-          view.userName = respBody.email.address || respBody.phone.number;
-        let html = Mustache.to_html(loadLoginSuccess(), view);
-        response.send(html);
-      });
+      response.redirect('/chat');
     });
   } 
   else {

@@ -36,49 +36,42 @@
 
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
     crossorigin="anonymous"></script>
+
   <script>
     const chat = document.getElementById('messages');
     const chatList = document.getElementById('chatList');
 
-    function sendMessage() {
-      const chatId = document.getElementById('chatId').value;
-      const messageText = document.getElementById('messageText').value;
-      $.post(`/sendMessage`, { chatId: parseInt(chatId), message: messageText }, (data) => {        
-      }, "application/json");
-      document.getElementById('messageText').value = '';
-    }
+    let socket = new WebSocket('ws://localhost:8888/');
+    socket.onopen = function () {
+      socket.send('/start');
+    };
 
-    var updateInterval = 0;
-    function observeChat() {
-      $.get(`/start`, () => {
-        updateInterval = setInterval(() => {
-          const chatId = document.getElementById('chatId').value;
-          $.get(`/getChat?chatId=${chatId}`, (data) => {
-            let itemData = '';
-            for(let msg of data){
-              itemData += `<div class="card"><div class="card-content"><div class="media"><p class="title is-4">${msg.userName}</p></div><div class="content"> ${msg.messageText}<br><small>${new Date(msg.receivedAt)}</small></div></div></div>`;                        
-            }
-            chat.innerHTML = itemData;
-          })
-        }, 1000);
-      });
-    }
-
-    setInterval(() => {
-      $.get(`/getChats`, (data) => {
+    socket.onmessage = function (received) {
+      let data = JSON.parse(received.data);
+      if (received.type === 'chatList') {
         chatList.innerHTML = '';
         for (let c of data) {
           chatList.innerHTML += `<div class="is-2 notification is-warning" style="cursor:pointer" onClick="setupChat(${c.chatId})">${c.chatName}</div>`
         }
-      })
-    }, 2000);
+      } else {
+        let itemData = '';
+        for (let msg of data) {
+          itemData += `<div class="card"><div class="card-content"><div class="media"><p class="title is-4">${msg.userName}</p></div><div class="content"> ${msg.messageText}<br><small>${new Date(msg.receivedAt)}</small></div></div></div>`;
+        }
+        chat.innerHTML = itemData;
+      }
+    };
+
+    function sendMessage() {
+      const chatId = document.getElementById('chatId').value;
+      const messageText = document.getElementById('messageText').value;
+      socket.send({chatId: parseInt(chatId), message: messageText });
+      document.getElementById('messageText').value = '';
+    }
 
     function setupChat(chatId) {
-      clearInterval(updateInterval);
       document.getElementById('chatId').value = chatId;
-      observeChat();
     }
-      $.get(`/start`);
   </script>
 </body>
 
