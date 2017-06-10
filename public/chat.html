@@ -1,14 +1,38 @@
 <html>
 
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.2/css/bulma.min.css">
+</head>
+
 <body>
-  <div id="chatList"></div>
-  <div id="messages"></div>
-  <div id="text">
-    <input type="text" id="messageText" />
-    <input type="button" value="Send Message" onclick="sendMessage()" />
-    <input type="hidden" value="286894193" id="chatId" />
+  <section class="hero is-info">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          Admin Vicky Bot
+        </h1>
+        <h2 class="subtitle">
+          View and interact with vicky's chats
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <div class="columns">
+    <div class="column is-one-quarter notification is-primary">
+      <h2 class="subtitle">All Active Chats</h2>
+      <div id="chatList" style="height: 100%">&nbsp</div>
+    </div>
+    <div class="column">
+      <div id="messages"></div>
+      <div id="text">
+        <input type="text" id="messageText" class="input" />
+        <input type="button" value="Send Message" class="button is-primary" onclick="sendMessage()" />
+        <input type="hidden" value="" id="chatId" />
+      </div>
+    </div>
   </div>
-  <input type="button" value="Start" onclick="observeChat()" />
+
 
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
     crossorigin="anonymous"></script>
@@ -19,33 +43,40 @@
     function sendMessage() {
       const chatId = document.getElementById('chatId').value;
       const messageText = document.getElementById('messageText').value;
-      $.post(`/sendMessage`, { chatId: parseInt(chatId), message: messageText }, (data) => {
+      $.post(`/sendMessage`, { chatId: parseInt(chatId), message: messageText }, (data) => {        
       }, "application/json");
+      document.getElementById('messageText').value = '';
     }
 
+    var updateInterval = 0;
     function observeChat() {
       $.get(`/start`, () => {
-        setInterval(() => {
+        updateInterval = setInterval(() => {
           const chatId = document.getElementById('chatId').value;
           $.get(`/getChat?chatId=${chatId}`, (data) => {
-            chat.innerText = new Date() + '\n=====\n';
-            chat.innerText += JSON.stringify(data);
+            let itemData = '';
+            for(let msg of data){
+              itemData += `<div class="card"><div class="card-content"><div class="media"><p class="title is-4">${msg.userName}</p></div><div class="content"> ${msg.messageText}<br><small>${new Date(msg.receivedAt)}</small></div></div></div>`;                        
+            }
+            chat.innerHTML = itemData;
           })
         }, 3000);
       });
     }
 
-    setInterval(() => {    
+    setInterval(() => {
       $.get(`/getChats`, (data) => {
         chatList.innerHTML = '';
-        for(let c of data){
-          chatList.innerHTML += `<div onClick="setupChat(${c.chatId})">${c.chatName}</div>`
+        for (let c of data) {
+          chatList.innerHTML += `<div class="is-2 notification is-warning" style="cursor:pointer" onClick="setupChat(${c.chatId})">${c.chatName}</div>`
         }
       })
     }, 3000);
 
-    function setupChat(chatId){
+    function setupChat(chatId) {
+      clearInterval(updateInterval);
       document.getElementById('chatId').value = chatId;
+      observeChat();
     }
   </script>
 </body>

@@ -1,7 +1,7 @@
 <!doctype html>
 <head>
   <meta charset="utf-8">
-  <title>AccountKitJS App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.2/css/bulma.min.css">
 </head>
 
 <body>
@@ -12,16 +12,4 @@
   <div>User phone: {{phone_num}}</div>
   <div>User email: {{email_addr}}</div>
   <div>User Name: {{userName}}</div>  
-
-  <div id="chatWindow" style="width: 300px; height: 300px;"></div>
-  <input type="text" id="chatText" />
-  <input type="button" id="sendMessage" onclick="sendMessage()"/>
-
-  <script>
-    function sendMessage(){
-      let messageText = document.getElementById('chatText').value;
-      
-    }
-  </script>
-
 </body>

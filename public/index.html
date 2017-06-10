@@ -1,65 +1,90 @@
 <html>
 <script src="https://sdk.accountkit.com/en_US/sdk.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.2/css/bulma.min.css">
 
 <body>
+  <section class="hero is-fullheight is-primary">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          VickyBot Admin Acess
+        </h1>
+        <h2 class="subtitle">
+          Chose between e-mail or phone auth to access the bot admin page.
+        </h2>
+      </div>
+    </div>
+    <div class="container">
 
-    <input value="+1" id="country_code" />
-    <input placeholder="phone number" id="phone_number" />
-    <button onclick="smsLogin();">Login via SMS</button>
-    <div>OR</div>
-    <input placeholder="email" id="email" />
-    <button onclick="emailLogin();">Login via Email</button>
+      <div class="column is-3 is-offset-5">
+        <div class="field">
+          <p class="control">
+            <input value="+55" id="country_code" class="input" />
+            <input placeholder="phone number" id="phone_number" class="input" />
+          </p>
+          <button onclick="smsLogin();" class="button">Login via SMS</button>
+        </div>
 
-<form id="login_success" method="post" action="/login_success">
-  <input id="csrf" type="hidden" name="csrf" />
-  <input id="code" type="hidden" name="code" />
-</form>
+        <div> - OR - </div>
 
-<script>
-  function loginCallback(response) {
-    if (response.status === "PARTIALLY_AUTHENTICATED") {
-      document.getElementById("code").value = response.code;
-      document.getElementById("csrf").value = response.state;
-      document.getElementById("login_success").submit();
-    }
-  }
-</script>
+        <div class="field">
+          <input placeholder="email" id="email" class="input" />
+          <button onclick="emailLogin();" class="button">Login via Email</button>
+        </div>
+      </div>
+    </div>
 
-<script>
-  // initialize Account Kit with CSRF protection
-  AccountKit_OnInteractive = function(){
-    AccountKit.init(
-      {
-        appId:"{{appId}}", 
-        state:"{{csrf}}", 
-        version:'{{version}}',
-        fbAppEventsEnabled:true
+    <form id="login_success" method="post" action="/login_success">
+      <input id="csrf" type="hidden" name="csrf" />
+      <input id="code" type="hidden" name="code" />
+    </form>
+  </section>
+
+  <script>
+    function loginCallback(response) {
+      if (response.status === "PARTIALLY_AUTHENTICATED") {
+        document.getElementById("code").value = response.code;
+        document.getElementById("csrf").value = response.state;
+        document.getElementById("login_success").submit();
       }
-    );
-  };
+    }
+  </script>
 
-  // phone form submission handler
-  function smsLogin() {
-    var countryCode = document.getElementById("country_code").value;
-    var phoneNumber = document.getElementById("phone_number").value;
-    AccountKit.login(
-      'PHONE', 
-      {countryCode: countryCode, phoneNumber: phoneNumber}, // will use default values if not specified
-      loginCallback
-    );
-  }
+  <script>
+    // initialize Account Kit with CSRF protection
+    AccountKit_OnInteractive = function () {
+      AccountKit.init(
+        {
+          appId: "{{appId}}",
+          state: "{{csrf}}",
+          version: '{{version}}',
+          fbAppEventsEnabled: true
+        }
+      );
+    };
+
+    // phone form submission handler
+    function smsLogin() {
+      var countryCode = document.getElementById("country_code").value;
+      var phoneNumber = document.getElementById("phone_number").value;
+      AccountKit.login(
+        'PHONE',
+        { countryCode: countryCode, phoneNumber: phoneNumber }, // will use default values if not specified
+        loginCallback
+      );
+    }
 
 
-  // email form submission handler
-  function emailLogin() {
-    var emailAddress = document.getElementById("email").value;
-    AccountKit.login(
-      'EMAIL',
-      {emailAddress: emailAddress},
-      loginCallback
-    );
-  }
-</script>
+    // email form submission handler
+    function emailLogin() {
+      var emailAddress = document.getElementById("email").value;
+      AccountKit.login(
+        'EMAIL',
+        { emailAddress: emailAddress },
+        loginCallback
+      );
+    }
+  </script>
 
 </body>
 

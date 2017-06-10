@@ -119,7 +119,6 @@ app.get('/chat', function(request, response){
 
 app.get('/start', function(request, response){
   service.start();
-  console.log('started');
   response.send(200);
 });
 
