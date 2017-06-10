@@ -7,6 +7,7 @@ const Request  = require('request');
 
 const chatService = require('../core/services/chatService').chatService;
 const telegramService = require('../core/services/telegramIntegrationService').telegramService;
+
 // const Querystring  = require('querystring');
 // const socketIO = require('socket.io');
 // const http = require('http');
@@ -96,7 +97,7 @@ const port = 8888;
 // });
 
 function loadLogin() {
-  return fs.readFileSync('../public/index.html').toString();
+  return fs.readFileSync(__dirname + '/../public/index.html').toString();
 }
 
 app.get('/', function(request, response){
@@ -111,18 +112,22 @@ app.get('/', function(request, response){
 });
 
 
-app.get('/start', function(request, response){
-  service.start();
-  response.send('OK');
+app.get('/chat', function(request, response){
+  const html = Mustache.to_html(fs.readFileSync(__dirname + '/../public/Chat.html').toString());
+  response.send(html);
 });
 
-app.post('/sendMessage', function(request, response){
-  
-  let messageText = request.body.message;
-  let chatId = request.body.chatId;
+app.get('/start', function(request, response){
+  service.start();
+  console.log('started');
+  response.send(200);
+});
 
-  service.sendMessage(chatId, messageText);
-  response.send("Message sent");
+app.post('/sendMessage', function(request, response){  
+  let messageText = request.body.message;
+  let chatId = parseInt(request.body.chatId);
+  service.sendMessage(chatId, messageText).then(() => response.send("Message sent"))
+                                          .catch((err) => response.send(err));
 });
 
 app.get('/getChats', function(request, response){
@@ -130,8 +135,17 @@ app.get('/getChats', function(request, response){
   response.send(chats);
 });
 
+app.get('/getChat', function(request, response){
+  const chatId = parseInt(request.query.chatId);  
+  const chat = service.getChatById(chatId);
+  if (chat)
+    chat.getAllMessages().then((messages) => response.send(messages));
+  else
+    response.send("vazio");
+});
+
 function loadLoginSuccess() {
-  return fs.readFileSync('../public/login_success.html').toString();
+  return fs.readFileSync(__dirname + '/../public/login_success.html').toString();
 }
 
 app.post('/login_success', function(request, response){

@@ -58,11 +58,23 @@ module.exports.chatService = class chatService {
     const result = [...receivedData.result];
 
     for (let msg of result) {
-      const chatId = msg.message.chat.id;
+      let base;
+      if (msg.channel_post){
+        msg.channel_post.from = {};
+        msg.channel_post.from.first_name = 'Chanel';
+        msg.channel_post.from.last_name = msg.channel_post.chat.title;
+        msg.message = msg.channel_post;
+        base = msg.channel_post;
+      }
+      else {
+        base = msg.message;
+      }
+
+      const chatId = base.chat.id;
 
       let currentChat = this.getChatById(chatId);
       if (!currentChat) {
-        currentChat = new chat(chatId, `Chat with ${msg.message.from.first_name} ${msg.message.from.last_name}`);
+        currentChat = new chat(chatId, `Chat with ${base.from.first_name} ${base.from.last_name}`);
         this.chats.push(currentChat);
       }
       currentChat.addReceivedMessage(msg);

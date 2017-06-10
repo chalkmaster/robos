@@ -1,0 +1,53 @@
+<html>
+
+<body>
+  <div id="chatList"></div>
+  <div id="messages"></div>
+  <div id="text">
+    <input type="text" id="messageText" />
+    <input type="button" value="Send Message" onclick="sendMessage()" />
+    <input type="hidden" value="286894193" id="chatId" />
+  </div>
+  <input type="button" value="Start" onclick="observeChat()" />
+
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+    crossorigin="anonymous"></script>
+  <script>
+    const chat = document.getElementById('messages');
+    const chatList = document.getElementById('chatList');
+
+    function sendMessage() {
+      const chatId = document.getElementById('chatId').value;
+      const messageText = document.getElementById('messageText').value;
+      $.post(`/sendMessage`, { chatId: parseInt(chatId), message: messageText }, (data) => {
+      }, "application/json");
+    }
+
+    function observeChat() {
+      $.get(`/start`, () => {
+        setInterval(() => {
+          const chatId = document.getElementById('chatId').value;
+          $.get(`/getChat?chatId=${chatId}`, (data) => {
+            chat.innerText = new Date() + '\n=====\n';
+            chat.innerText += JSON.stringify(data);
+          })
+        }, 3000);
+      });
+    }
+
+    setInterval(() => {    
+      $.get(`/getChats`, (data) => {
+        chatList.innerHTML = '';
+        for(let c of data){
+          chatList.innerHTML += `<div onClick="setupChat(${c.chatId})">${c.chatName}</div>`
+        }
+      })
+    }, 3000);
+
+    function setupChat(chatId){
+      document.getElementById('chatId').value = chatId;
+    }
+  </script>
+</body>
+
+</html>
